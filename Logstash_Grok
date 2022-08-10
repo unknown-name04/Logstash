@@ -1,0 +1,29 @@
+input {
+	file {
+		path => "/home/matt/Documents/input"
+		start_position => "beginning"
+		sincedb_path => "/dev/null"
+		}
+}
+
+filter {
+        grok { match => { "message" => "%{GREEDYDATA:filter}%{TIMESTAMP_ISO8601:filter}%{GREEDYDATA:filter}%{HOSTNAME:Severity}"}}
+	translate {
+	source => "[Severity]"
+	target => "[severity]"
+	dictionary => {
+		"0" => "critical"
+		"1" => "high"
+		"2" => "medium"
+		"3" => "low"
+		}
+		fallback => "ERROR: Value must not exceed 3"
+	               }
+	grok { match => { "message" => "(?<description>[a-zA-Z]+ [a-zA-Z]+)"}}
+	grok { match => { "message" => "(?<hostname>[a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]+[0-9][0-9])"}}
+	grok { match => { "message" => "%{IP:source_ip:}"}}
+	mutate { remove_field => ["message", "filter", "event", "original", "@timestamp", "@version", "host", "name", "log", "file", "path", "Severity"]}
+
+}
+
+output {stdout {} }
