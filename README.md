@@ -1,2 +1,0 @@
-# Logstash
-Logstash Project
